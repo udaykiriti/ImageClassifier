@@ -7,17 +7,21 @@ class KNNClassifier
 {
 private:
   int k;
-  std::vector<std::vector<double>> train_images;
-  std::vector<int> train_labels;
+  std::vector<std::vector<double>> X; // training images
+  std::vector<int> y;                 // training labels
 
-  double euclidean_distance(const std::vector<double> &a, const std::vector<double> &b) const;
+  double distance(const std::vector<double> &a, const std::vector<double> &b);
 
 public:
-  KNNClassifier(int neighbors = 3);
+  KNNClassifier(int neighbors = 3) : k(neighbors) {}
 
-  void fit(const std::vector<std::vector<double>> &images, const std::vector<int> &labels);
-  int predict(const std::vector<double> &image) const;
-  double score(const std::vector<std::vector<double>> &test_images, const std::vector<int> &test_labels) const;
+  void fit(const std::vector<std::vector<double>> &X_train,
+           const std::vector<int> &y_train);
+
+  int predict(const std::vector<double> &x);
+
+  double score(const std::vector<std::vector<double>> &X_test,
+               const std::vector<int> &y_test);
 };
 
 #endif
