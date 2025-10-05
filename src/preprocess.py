@@ -1,7 +1,9 @@
 from PIL import Image
 import numpy as np
 
-img = Image.open("src/image.png").convert("L")  # grayscale
+img = Image.open("src/image.png").convert("L") 
+
+# converts image to gray scale 28  * 28
 img = img.resize((28, 28))
 pixels = np.array(img).flatten() / 255.0
 
