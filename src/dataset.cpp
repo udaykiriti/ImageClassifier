@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iomanip>
 #include <ctime>
+#include <numeric>
 
 Dataset::Dataset(const std::string &DatasetName, const std::string &DatasetPath)
     : name(DatasetName), path(DatasetPath)

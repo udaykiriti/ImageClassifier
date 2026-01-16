@@ -21,7 +21,7 @@ cmake_install.cmake
 .vscode/
 *.swp
 *.swo
-*~
+
 
 # OS files
 .DS_Store

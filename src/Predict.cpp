@@ -6,8 +6,8 @@
 using namespace std;
 
 /*
- g++ src/Predict.cpp src/SimpleNN.cpp src/dataset.cpp -ID:\ImageClassifier\tiny-dnn -Iinclude -O2 -std=c++17 -fopenmp -o build/ImagePredict.exe
- build\ImagePredict.exe
+ make predict
+ ./build/ImagePredict
 */
 
 int main()

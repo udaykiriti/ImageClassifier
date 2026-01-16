@@ -28,7 +28,7 @@
 
 ---
 
-## Project Structure ---------------
+## Project Structure
 
 ```
 ImageClassifier/
@@ -36,12 +36,17 @@ ImageClassifier/
 │  ├─ main.cpp           # Entry point (train models)
 │  ├─ Predict.cpp        # Predict single image from text file
 │  ├─ PredictProb.cpp    # Predict and display true label with ASCII image
-│  ├─ dataset.cpp / dataset.hpp   # MNIST dataset loader
-│  ├─ knn_classifier.cpp / knn_classifier.hpp  # KNN implementation
-│  ├─ SimpleNN.cpp / SimpleNN.hpp  # Neural network (Tiny-dnn)
+│  ├─ dataset.cpp        # MNIST dataset loader
+│  ├─ knn_classifier.cpp # KNN implementation
+│  ├─ SimpleNN.cpp       # Neural network (Tiny-dnn)
+│  ├─ preprocess.py      # Convert image to text file
 ├─ include/              # Header files
+│  ├─ dataset.hpp
+│  ├─ knn_classifier.hpp
+│  ├─ SimpleNN.hpp
 ├─ data/                 # MNIST dataset files / image.txt
 ├─ build/                # Compiled executable output / saved model
+├─ tiny-dnn/             # Tiny-dnn library (git submodule)
 └─ README.md             # Project documentation
 ```
 
@@ -64,7 +69,32 @@ git clone "https://github.com/udaykiriti/ImageClassifier.git"
 cd ImageClassifier
 ```
 
-### 2. Compile
+### 2. Initialize submodules
+
+```bash
+git submodule update --init
+```
+
+### 3. Compile
+
+**Using Makefile (recommended):**
+
+```bash
+make nn          # Neural Network version
+make knn         # KNN version
+make predict     # Predict single image
+make predictprob # Predict with ASCII output
+```
+
+**Or using CMake:**
+
+```bash
+mkdir -p build && cd build
+cmake ..
+make
+```
+
+**Or manually:**
 
 **KNN version:**
 
@@ -73,25 +103,25 @@ g++ src/main.cpp src/dataset.cpp src/knn_classifier.cpp -Iinclude -O2 -std=c++17
 ./build/ImageClassifier
 ```
 
-**Neural Network version** (Tiny-dnn installed in `D:\ImageClassifier\tiny-dnn`):
+**Neural Network version:**
 
 ```bash
-g++ src/main.cpp src/dataset.cpp src/SimpleNN.cpp -ID:\ImageClassifier\tiny-dnn -Iinclude -O2 -std=c++17 -fopenmp -o build/ImageClassifier
+g++ src/main.cpp src/dataset.cpp src/SimpleNN.cpp -Itiny-dnn -Iinclude -O2 -std=c++17 -fopenmp -o build/ImageClassifier
 ./build/ImageClassifier
 ```
 
-**Predict single image** (`Predict.cpp`):
+**Predict single image:**
 
 ```bash
-g++ src/Predict.cpp src/SimpleNN.cpp src/dataset.cpp -ID:\ImageClassifier\tiny-dnn -Iinclude -O2 -std=c++17 -fopenmp -o build/ImagePredict.exe
-./build/ImagePredict.exe
+g++ src/Predict.cpp src/SimpleNN.cpp src/dataset.cpp -Itiny-dnn -Iinclude -O2 -std=c++17 -fopenmp -o build/ImagePredict
+./build/ImagePredict
 ```
 
-**Predict with true label and ASCII image** (`PredictProb.cpp`):
+**Predict with true label and ASCII image:**
 
 ```bash
-g++ src/PredictProb.cpp src/SimpleNN.cpp src/dataset.cpp -ID:\ImageClassifier\tiny-dnn -Iinclude -O2 -std=c++17 -fopenmp -o build/ImagePredictProb.exe
-./build/ImagePredictProb.exe
+g++ src/PredictProb.cpp src/SimpleNN.cpp src/dataset.cpp -Itiny-dnn -Iinclude -O2 -std=c++17 -fopenmp -o build/ImagePredictProb
+./build/ImagePredictProb
 ```
 
 ---
@@ -111,20 +141,20 @@ For `Predict.cpp` and `PredictProb.cpp`, images must be converted to **text file
 
 ---
 
-##  Usage
+## Usage
 
 1. Compile as described above.
 2. Train the model using `main.cpp`.
 3. Predict a single image:
 
 ```bash
-./build/ImagePredict.exe
+./build/ImagePredict
 ```
 
 4. Predict with true label and ASCII image:
 
 ```bash
-./build/ImagePredictProb.exe
+./build/ImagePredictProb
 ```
 
 **Example Output (`PredictProb.exe`):**
@@ -146,7 +176,7 @@ ASCII Image:
 
 ---
 
-##  Example Output
+## Example Output
 
 ```
 Loading MNIST dataset...
@@ -160,13 +190,13 @@ Image 1: 2, Predicted: 2
 
 ---
 
-##  License
+## License
 
 This project is licensed under the **MIT License**.
 
 ---
 
-##  References
+## References
 
 - [Tiny-dnn library](https://github.com/tiny-dnn/tiny-dnn)
 
