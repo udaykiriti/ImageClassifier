@@ -6,11 +6,11 @@ This folder contains detailed documentation for the ImageClassifier project.
 
 | Document | Description |
 |----------|-------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Project structure and design |
-| [API.md](API.md) | Header files and class documentation |
-| [BUILD.md](BUILD.md) | Build instructions and Makefile targets |
-| [SCRIPTS.md](SCRIPTS.md) | Utility scripts documentation |
-| [USAGE.md](USAGE.md) | Command-line usage and examples |
+| [ARCHITECTURE](ARCHITECTURE.md) | Project structure and design |
+| [API](API.md) | Header files and class documentation |
+| [BUILD](BUILD.md) | Build instructions and Makefile targets |
+| [SCRIPTS](SCRIPTS.md) | Utility scripts documentation |
+| [USAGE](USAGE.md) | Command-line usage and examples |
 
 ## Quick Start
 
