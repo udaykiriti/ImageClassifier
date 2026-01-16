@@ -20,31 +20,27 @@ KNN_SRC = $(SRC_DIR)/knn.cpp
 all: dirs nn
 
 dirs:
-@mkdir -p $(BUILD_DIR) $(MODEL_DIR)
+	@mkdir -p $(BUILD_DIR) $(MODEL_DIR)
 
 nn: dirs
-$(CXX) $(CXXFLAGS) $(SRC_DIR)/main.cpp $(MNIST_SRC) $(NN_SRC) \
-$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/classifier
+	$(CXX) $(CXXFLAGS) $(SRC_DIR)/main.cpp $(MNIST_SRC) $(NN_SRC) $(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/classifier
 
 knn: dirs
-$(CXX) $(CXXFLAGS) $(SRC_DIR)/main.cpp $(MNIST_SRC) $(KNN_SRC) \
-$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/classifier_knn
+	$(CXX) $(CXXFLAGS) $(SRC_DIR)/main.cpp $(MNIST_SRC) $(KNN_SRC) $(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/classifier_knn
 
 predict: dirs
-$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict.cpp $(MNIST_SRC) $(NN_SRC) \
-$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/predict
+	$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict.cpp $(MNIST_SRC) $(NN_SRC) $(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/predict
 
 visualize: dirs
-$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict_visualize.cpp $(MNIST_SRC) $(NN_SRC) \
-$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/visualize
+	$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict_visualize.cpp $(MNIST_SRC) $(NN_SRC) $(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/visualize
 
 clean:
-rm -rf $(BUILD_DIR)/* $(MODEL_DIR)/*
+	rm -rf $(BUILD_DIR)/* $(MODEL_DIR)/*
 
 help:
-@echo "Targets:"
-@echo "  nn        - Build neural network classifier (default)"
-@echo "  knn       - Build KNN classifier"
-@echo "  predict   - Build single image predictor"
-@echo "  visualize - Build predictor with ASCII output"
-@echo "  clean     - Remove build artifacts"
+	@echo "Targets:"
+	@echo "  nn        - Build neural network classifier"
+	@echo "  knn       - Build KNN classifier"
+	@echo "  predict   - Build single image predictor"
+	@echo "  visualize - Build predictor with ASCII output"
+	@echo "  clean     - Remove build artifacts"
