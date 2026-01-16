@@ -4,43 +4,37 @@ CXX = g++
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
 LDFLAGS = -fopenmp
 
-SRC_DIR = src
-INC_DIR = include
 BUILD_DIR = build
 MODEL_DIR = models
+INC = -Iinclude -Itiny-dnn
 
-INCLUDES = -I$(INC_DIR) -Itiny-dnn
+CORE_SRC = src/core/classifier.cpp src/core/dataset.cpp
+NN_SRC = src/classifiers/neural_net.cpp
+KNN_SRC = src/classifiers/knn.cpp
 
-MNIST_SRC = $(SRC_DIR)/mnist_loader.cpp
-NN_SRC = $(SRC_DIR)/neural_network.cpp
-KNN_SRC = $(SRC_DIR)/knn.cpp
+.PHONY: all clean dirs train predict help
 
-.PHONY: all clean dirs nn knn predict visualize help
-
-all: dirs nn
+all: dirs train predict
 
 dirs:
 	@mkdir -p $(BUILD_DIR) $(MODEL_DIR)
 
-nn: dirs
-	$(CXX) $(CXXFLAGS) $(SRC_DIR)/main.cpp $(MNIST_SRC) $(NN_SRC) $(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/classifier
-
-knn: dirs
-	$(CXX) $(CXXFLAGS) $(SRC_DIR)/main_knn.cpp $(MNIST_SRC) $(KNN_SRC) -I$(INC_DIR) $(LDFLAGS) -o $(BUILD_DIR)/classifier_knn
+train: dirs
+	$(CXX) $(CXXFLAGS) src/apps/train.cpp $(CORE_SRC) $(NN_SRC) $(KNN_SRC) $(INC) $(LDFLAGS) -o $(BUILD_DIR)/train
 
 predict: dirs
-	$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict.cpp $(MNIST_SRC) $(NN_SRC) $(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/predict
-
-visualize: dirs
-	$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict_visualize.cpp $(MNIST_SRC) $(NN_SRC) $(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/visualize
+	$(CXX) $(CXXFLAGS) src/apps/predict.cpp $(CORE_SRC) $(NN_SRC) $(INC) $(LDFLAGS) -o $(BUILD_DIR)/predict
 
 clean:
 	rm -rf $(BUILD_DIR)/* $(MODEL_DIR)/*.model
 
 help:
-	@echo "Targets:"
-	@echo "  nn        - Build neural network classifier (default)"
-	@echo "  knn       - Build KNN classifier"
-	@echo "  predict   - Build single image predictor"
-	@echo "  visualize - Build predictor with ASCII output"
-	@echo "  clean     - Remove build artifacts"
+	@echo "Usage:"
+	@echo "  make train    - Build training app"
+	@echo "  make predict  - Build prediction app"
+	@echo "  make clean    - Remove build files"
+	@echo ""
+	@echo "Run:"
+	@echo "  ./build/train --model nn --train 5000 --epochs 10"
+	@echo "  ./build/train --model knn --train 1000 --k 5"
+	@echo "  ./build/predict --image data/image.txt --show"

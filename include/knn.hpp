@@ -1,28 +1,27 @@
 #ifndef KNN_HPP
 #define KNN_HPP
 
-#include <vector>
+#include "classifier.hpp"
 
-class KNN
+namespace mnist {
+
+class KNN : public Classifier
 {
 private:
     int k_;
-    std::vector<std::vector<double>> train_images_;
-    std::vector<int> train_labels_;
+    ImageSet train_images_;
+    Labels train_labels_;
 
-    double euclideanDistance(const std::vector<double>& a,
-                             const std::vector<double>& b) const;
+    double distance(const Image& a, const Image& b) const;
 
 public:
-    explicit KNN(int neighbors = 3) : k_(neighbors) {}
+    explicit KNN(int k = 3) : k_(k) {}
 
-    void fit(const std::vector<std::vector<double>>& images,
-             const std::vector<int>& labels);
-
-    int predict(const std::vector<double>& image);
-
-    double evaluate(const std::vector<std::vector<double>>& images,
-                    const std::vector<int>& labels);
+    void train(const ImageSet& images, const Labels& labels) override;
+    int predict(const Image& image) override;
+    std::string name() const override { return "KNN"; }
 };
+
+}
 
 #endif

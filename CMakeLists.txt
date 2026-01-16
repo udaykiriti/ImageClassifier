@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(ImageClassifier LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -10,49 +10,33 @@ find_package(OpenMP)
 include_directories(include)
 include_directories(tiny-dnn)
 
-# Common sources
-set(MNIST_SRC src/mnist_loader.cpp)
-set(NN_SRC src/neural_network.cpp)
-set(KNN_SRC src/knn.cpp)
-
-# Neural Network Classifier
-add_executable(classifier
-    src/main.cpp
-    ${MNIST_SRC}
-    ${NN_SRC}
+set(CORE_SRC
+    src/core/classifier.cpp
+    src/core/dataset.cpp
 )
 
-# KNN Classifier
-add_executable(classifier_knn
-    src/main.cpp
-    ${MNIST_SRC}
-    ${KNN_SRC}
+set(CLASSIFIERS_SRC
+    src/classifiers/neural_net.cpp
+    src/classifiers/knn.cpp
 )
 
-# Predict
+add_executable(train
+    src/apps/train.cpp
+    ${CORE_SRC}
+    ${CLASSIFIERS_SRC}
+)
+
 add_executable(predict
-    src/predict.cpp
-    ${MNIST_SRC}
-    ${NN_SRC}
+    src/apps/predict.cpp
+    ${CORE_SRC}
+    src/classifiers/neural_net.cpp
 )
 
-# Visualize
-add_executable(visualize
-    src/predict_visualize.cpp
-    ${MNIST_SRC}
-    ${NN_SRC}
-)
-
-# Link OpenMP
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(classifier OpenMP::OpenMP_CXX)
-    target_link_libraries(classifier_knn OpenMP::OpenMP_CXX)
+    target_link_libraries(train OpenMP::OpenMP_CXX)
     target_link_libraries(predict OpenMP::OpenMP_CXX)
-    target_link_libraries(visualize OpenMP::OpenMP_CXX)
 endif()
 
-# Compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra")
 
-# Create models directory
 file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/models)
