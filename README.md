@@ -64,7 +64,13 @@ git submodule update --init
 
 ## Dataset
 
-Download MNIST dataset files and place in `data/`:
+Download MNIST dataset automatically:
+
+```bash
+./scripts/download_mnist.sh
+```
+
+Or manually download files and place in `data/`:
 
 | File | Description |
 |------|-------------|
