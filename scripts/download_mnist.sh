@@ -17,6 +17,7 @@ mkdir -p "$DATA_DIR"
 cd "$DATA_DIR"
 
 echo "Downloading MNIST dataset..."
+echo "Hold Tight...."
 
 for file in "${FILES[@]}"; do
     if [ ! -f "${file%.gz}" ]; then
