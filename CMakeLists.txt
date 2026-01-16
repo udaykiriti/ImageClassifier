@@ -1,54 +1,58 @@
 cmake_minimum_required(VERSION 3.10)
-project(ImageClassifier)
+project(ImageClassifier LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Find OpenMP
 find_package(OpenMP)
 
-# Include directories
 include_directories(include)
 include_directories(tiny-dnn)
 
-# Neural Network version
-add_executable(ImageClassifier
+# Common sources
+set(MNIST_SRC src/mnist_loader.cpp)
+set(NN_SRC src/neural_network.cpp)
+set(KNN_SRC src/knn.cpp)
+
+# Neural Network Classifier
+add_executable(classifier
     src/main.cpp
-    src/dataset.cpp
-    src/SimpleNN.cpp
+    ${MNIST_SRC}
+    ${NN_SRC}
 )
 
-# Predict executable
-add_executable(ImagePredict
-    src/Predict.cpp
-    src/dataset.cpp
-    src/SimpleNN.cpp
-)
-
-# PredictProb executable
-add_executable(ImagePredictProb
-    src/PredictProb.cpp
-    src/dataset.cpp
-    src/SimpleNN.cpp
-)
-
-# KNN version
-add_executable(ImageClassifierKNN
+# KNN Classifier
+add_executable(classifier_knn
     src/main.cpp
-    src/dataset.cpp
-    src/knn_classifier.cpp
+    ${MNIST_SRC}
+    ${KNN_SRC}
 )
 
-# Link OpenMP if available
+# Predict
+add_executable(predict
+    src/predict.cpp
+    ${MNIST_SRC}
+    ${NN_SRC}
+)
+
+# Visualize
+add_executable(visualize
+    src/predict_visualize.cpp
+    ${MNIST_SRC}
+    ${NN_SRC}
+)
+
+# Link OpenMP
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(ImageClassifier OpenMP::OpenMP_CXX)
-    target_link_libraries(ImagePredict OpenMP::OpenMP_CXX)
-    target_link_libraries(ImagePredictProb OpenMP::OpenMP_CXX)
-    target_link_libraries(ImageClassifierKNN OpenMP::OpenMP_CXX)
+    target_link_libraries(classifier OpenMP::OpenMP_CXX)
+    target_link_libraries(classifier_knn OpenMP::OpenMP_CXX)
+    target_link_libraries(predict OpenMP::OpenMP_CXX)
+    target_link_libraries(visualize OpenMP::OpenMP_CXX)
 endif()
 
-# Compiler optimization
-target_compile_options(ImageClassifier PRIVATE -O2)
-target_compile_options(ImagePredict PRIVATE -O2)
-target_compile_options(ImagePredictProb PRIVATE -O2)
-target_compile_options(ImageClassifierKNN PRIVATE -O2)
+# Compiler flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra")
+
+# Create models directory
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/models)

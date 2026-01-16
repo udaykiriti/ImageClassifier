@@ -1,38 +1,42 @@
 # ImageClassifier
 
-A C++ machine learning project for classifying handwritten digits from the MNIST dataset using two approaches:
+A C++ machine learning project for classifying handwritten digits from the MNIST dataset.
 
-- **K-Nearest Neighbors (KNN)** - A simple distance-based classifier
-- **Neural Network** - A fully connected network implemented with Tiny-dnn
+## Overview
+
+This project implements two classification algorithms:
+
+- **Neural Network** - A fully connected network (784 -> 128 -> 10) using Tiny-dnn
+- **K-Nearest Neighbors (KNN)** - A distance-based classifier with parallel processing
 
 ## Features
 
-- Load and preprocess MNIST dataset (60,000 training + 10,000 test images)
-- Train and evaluate KNN and Neural Network classifiers
-- Display images in ASCII format
-- Save and load trained neural network models
-- Predict single images from text files
-- Display prediction results with confidence
+- MNIST dataset loader with binary file parsing
+- ASCII visualization of digit images
+- Model persistence (save/load trained models)
+- Single image prediction from text files
+- OpenMP parallel processing for faster training and inference
 
 ## Project Structure
 
 ```
 ImageClassifier/
 ├── src/
-│   ├── main.cpp             # Train and evaluate models
-│   ├── Predict.cpp          # Predict single image from text file
-│   ├── PredictProb.cpp      # Predict with ASCII visualization
-│   ├── dataset.cpp          # MNIST dataset loader
-│   ├── knn_classifier.cpp   # KNN implementation
-│   ├── SimpleNN.cpp         # Neural network implementation
-│   └── preprocess.py        # Convert PNG to text file
+│   ├── main.cpp              # Train and evaluate models
+│   ├── predict.cpp           # Predict single digit
+│   ├── predict_visualize.cpp # Predict with ASCII display
+│   ├── mnist_loader.cpp      # MNIST binary file loader
+│   ├── neural_network.cpp    # Neural network implementation
+│   └── knn.cpp               # KNN implementation
 ├── include/
-│   ├── dataset.hpp
-│   ├── knn_classifier.hpp
-│   └── SimpleNN.hpp
-├── data/                    # MNIST dataset and input images
-├── build/                   # Compiled binaries and saved models
-├── tiny-dnn/                # Tiny-dnn library (git submodule)
+│   ├── mnist_loader.hpp
+│   ├── neural_network.hpp
+│   └── knn.hpp
+├── data/                     # MNIST dataset files
+├── models/                   # Saved model files
+├── scripts/
+│   └── preprocess.py         # Image to text converter
+├── tiny-dnn/                 # Tiny-dnn library (submodule)
 ├── Makefile
 ├── CMakeLists.txt
 └── README.md
@@ -40,145 +44,125 @@ ImageClassifier/
 
 ## Requirements
 
-- C++17 compatible compiler (g++, clang++)
-- [Tiny-dnn](https://github.com/tiny-dnn/tiny-dnn) (included as submodule)
-- OpenMP (optional, for parallel processing)
-- Python 3 with PIL/Pillow and NumPy (for image preprocessing)
+- C++17 compiler (g++, clang++)
+- Tiny-dnn (included as git submodule)
+- OpenMP (optional)
+- Python 3 with PIL and NumPy (for preprocessing)
 
 ## Installation
-
-### 1. Clone the repository
 
 ```bash
 git clone --recurse-submodules https://github.com/udaykiriti/ImageClassifier.git
 cd ImageClassifier
 ```
 
-If you already cloned without submodules:
+If already cloned:
 
 ```bash
 git submodule update --init
 ```
 
-### 2. Download MNIST dataset
+## Dataset
 
-Place the following files in the `data/` folder:
+Download MNIST dataset files and place in `data/`:
 
-| File                        | Description      |
-|-----------------------------|------------------|
-| `train-images-idx3-ubyte`   | Training images  |
-| `train-labels-idx1-ubyte`   | Training labels  |
-| `t10k-images-idx3-ubyte`    | Test images      |
-| `t10k-labels-idx1-ubyte`    | Test labels      |
+| File | Description |
+|------|-------------|
+| train-images-idx3-ubyte | 60,000 training images |
+| train-labels-idx1-ubyte | Training labels |
+| t10k-images-idx3-ubyte | 10,000 test images |
+| t10k-labels-idx1-ubyte | Test labels |
 
-Download from: http://yann.lecun.com/exdb/mnist/
+Download: http://yann.lecun.com/exdb/mnist/
 
-### 3. Build the project
-
-**Using Makefile (recommended):**
+## Build
 
 ```bash
-make nn            # Build Neural Network version
-make knn           # Build KNN version
-make predict       # Build single image predictor
-make predictprob   # Build predictor with ASCII output
-make clean         # Remove build artifacts
+make nn        # Neural network classifier
+make knn       # KNN classifier
+make predict   # Single image predictor
+make visualize # Predictor with ASCII output
+make clean     # Remove build files
 ```
 
-**Using CMake:**
+Or with CMake:
 
 ```bash
-mkdir -p build && cd build
+mkdir build && cd build
 cmake ..
 make
 ```
 
 ## Usage
 
-### Train and evaluate
+### Train and Evaluate
 
 ```bash
-./build/ImageClassifier
+./build/classifier
 ```
 
-This will:
-1. Load the MNIST dataset
-2. Train the model (or load existing model)
-3. Evaluate accuracy on test set
-4. Display sample predictions
-
-### Predict a single image
-
-1. Convert your image to text format:
-
-```bash
-python src/preprocess.py
+Output:
 ```
-
-2. Run prediction:
-
-```bash
-./build/ImagePredict
-```
-
-### Predict with ASCII visualization
-
-```bash
-./build/ImagePredictProb
-```
-
-## Example Output
-
-### Training output
-
-```
-Dataset module initialized: MNIST Training Data
-Loaded 60000 images of size 28x28
+MNIST loader initialized: MNIST Training
+Loaded 60000 images (28x28)
 Loaded 60000 labels
 Training completed.
 Accuracy: 94.6%
 
 Sample Predictions:
-Test Image 0 - True Label: 7, Predicted: 7
-Test Image 1 - True Label: 2, Predicted: 2
-Test Image 2 - True Label: 1, Predicted: 1
+--------------------
+Image 0 | True: 7 | Predicted: 7 [OK]
 ```
 
-### ASCII visualization
+### Predict Single Image
 
+1. Convert image to text:
+```bash
+python scripts/preprocess.py path/to/digit.png data/image.txt
 ```
-Predicted label: 5
-True label: 5
-Prediction is correct!
 
+2. Run prediction:
+```bash
+./build/predict
+```
+
+### Predict with Visualization
+
+```bash
+./build/visualize 5  # Optional: pass true label
+```
+
+Output:
+```
+ASCII Image:
 ............................
 ...........@@@...#@@#.......
 ...........#@@...#@@#.......
-...........#@@*..#@@#.......
-............##...*##........
-.............****##.........
-............................
+
+Predicted digit: 5
+True label: 5
+CORRECT
 ```
 
-## How It Works
-
-### KNN Classifier
-- Stores all training images in memory
-- For each test image, finds K nearest neighbors using Euclidean distance
-- Predicts the most common label among neighbors
-- Uses OpenMP for parallel distance computation
+## Architecture
 
 ### Neural Network
-- Architecture: 784 -> 128 (ReLU) -> 10 (Softmax)
+- Input: 784 neurons (28x28 pixels)
+- Hidden: 128 neurons with ReLU activation
+- Output: 10 neurons with Softmax
 - Optimizer: Adagrad
-- Loss: Mean Squared Error
-- Trained for 10 epochs with batch size 32
+- Loss: MSE
+
+### KNN
+- Distance metric: Euclidean
+- Default K: 3
+- Parallelized with OpenMP
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License
 
 ## References
 
 - [MNIST Database](http://yann.lecun.com/exdb/mnist/)
-- [Tiny-dnn Library](https://github.com/tiny-dnn/tiny-dnn)
+- [Tiny-dnn](https://github.com/tiny-dnn/tiny-dnn)

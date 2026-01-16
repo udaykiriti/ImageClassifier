@@ -1,67 +1,71 @@
-#include "dataset.hpp"
-#include "SimpleNN.hpp"
+#include "mnist_loader.hpp"
+#include "neural_network.hpp"
 #include <iostream>
+#include <fstream>
 #include <algorithm>
-using namespace std;
 
 int main()
 {
-  Dataset TrainData("MNIST Training Data", "./data");
-  Dataset TestData("MNIST Test Data", "./data");
+    const std::string data_path = "./data";
+    const std::string model_path = "./models/neural_network.model";
 
-  TrainData.LoadImages("train-images-idx3-ubyte");
-  TrainData.LoadLabels("train-labels-idx1-ubyte");
-  TestData.LoadImages("t10k-images-idx3-ubyte");
-  TestData.LoadLabels("t10k-labels-idx1-ubyte");
+    MnistLoader train_data("MNIST Training", data_path);
+    MnistLoader test_data("MNIST Test", data_path);
 
-  // Take smaller subset for faster training
-  int train_limit = min(2000, TrainData.NumImages());
-  int test_limit = min(500, TestData.NumImages());
+    train_data.loadImages("train-images-idx3-ubyte");
+    train_data.loadLabels("train-labels-idx1-ubyte");
+    test_data.loadImages("t10k-images-idx3-ubyte");
+    test_data.loadLabels("t10k-labels-idx1-ubyte");
 
-  vector<vector<double>> train_images(
-      TrainData.GetImages().begin(), TrainData.GetImages().begin() + train_limit);
-  vector<int> train_labels(
-      TrainData.GetLabels().begin(), TrainData.GetLabels().begin() + train_limit);
+    int train_size = std::min(2000, train_data.numImages());
+    int test_size = std::min(500, test_data.numImages());
 
-  vector<vector<double>> test_images(
-      TestData.GetImages().begin(), TestData.GetImages().begin() + test_limit);
-  vector<int> test_labels(
-      TestData.GetLabels().begin(), TestData.GetLabels().begin() + test_limit);
+    std::vector<std::vector<double>> train_images(
+        train_data.images().begin(),
+        train_data.images().begin() + train_size);
+    std::vector<int> train_labels(
+        train_data.labels().begin(),
+        train_data.labels().begin() + train_size);
 
-  SimpleNN nn;
+    std::vector<std::vector<double>> test_images(
+        test_data.images().begin(),
+        test_data.images().begin() + test_size);
+    std::vector<int> test_labels(
+        test_data.labels().begin(),
+        test_data.labels().begin() + test_size);
 
-  // Check if model exists and load it, otherwise train and save
-  const string model_path = "./build/simple_nn_model";
-  ifstream f(model_path);
-  if (f.good())
-  {
-    f.close();
-    nn.loadModel(model_path);
-    cout << "Loaded pre-trained model from " << model_path << endl;
-  }
-  else
-  {
-    nn.train(train_images, train_labels, 10, 32);
-    nn.saveModel(model_path);
-    cout << "Training completed and model saved to " << model_path << endl;
-  }
+    NeuralNetwork model;
 
-  double acc = nn.score(test_images, test_labels);
-  cout << "Accuracy: " << acc * 100 << "%" << endl;
+    std::ifstream model_file(model_path);
+    if (model_file.good())
+    {
+        model_file.close();
+        model.load(model_path);
+        std::cout << "Loaded model from: " << model_path << std::endl;
+    }
+    else
+    {
+        model.train(train_images, train_labels, 10, 32);
+        model.save(model_path);
+        std::cout << "Model saved to: " << model_path << std::endl;
+    }
 
-  // Display true and predicted labels for first 10 test images
-  cout << "\nSample Predictions:\n";
-  for (int i = 0; i < 10; i++)
-  {
-    int pred = nn.predict(test_images[i]);
-    cout << "Test Image " << i
-         << " - True Label: " << test_labels[i]
-         << ", Predicted: " << pred << endl;
+    double accuracy = model.evaluate(test_images, test_labels);
+    std::cout << "Accuracy: " << accuracy * 100 << "%" << std::endl;
 
-    // Optional: display ASCII image
-    TestData.PrintImage(i);
-    cout << "--------------------\n";
-  }
+    std::cout << "\nSample Predictions:\n";
+    std::cout << "--------------------\n";
+    for (int i = 0; i < 10; ++i)
+    {
+        int predicted = model.predict(test_images[i]);
+        std::cout << "Image " << i
+                  << " | True: " << test_labels[i]
+                  << " | Predicted: " << predicted
+                  << (predicted == test_labels[i] ? " [OK]" : " [X]")
+                  << std::endl;
+        test_data.printImage(i);
+        std::cout << "--------------------\n";
+    }
 
-  return 0;
+    return 0;
 }

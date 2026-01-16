@@ -1,40 +1,50 @@
 # ImageClassifier Makefile
 
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -fopenmp
-INCLUDES = -Iinclude -Itiny-dnn
-BUILD_DIR = build
+CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
+LDFLAGS = -fopenmp
 
-# Source files
 SRC_DIR = src
-DATASET_SRC = $(SRC_DIR)/dataset.cpp
-KNN_SRC = $(SRC_DIR)/knn_classifier.cpp
-NN_SRC = $(SRC_DIR)/SimpleNN.cpp
+INC_DIR = include
+BUILD_DIR = build
+MODEL_DIR = models
 
-# Targets
-.PHONY: all clean knn nn predict predictprob
+INCLUDES = -I$(INC_DIR) -Itiny-dnn
 
-all: nn
+MNIST_SRC = $(SRC_DIR)/mnist_loader.cpp
+NN_SRC = $(SRC_DIR)/neural_network.cpp
+KNN_SRC = $(SRC_DIR)/knn.cpp
 
-# Create build directory
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+.PHONY: all clean dirs nn knn predict visualize
 
-# KNN version
-knn: $(BUILD_DIR)
-	$(CXX) $(SRC_DIR)/main.cpp $(DATASET_SRC) $(KNN_SRC) -Iinclude $(CXXFLAGS) -o $(BUILD_DIR)/ImageClassifier
+all: dirs nn
 
-# Neural Network version
-nn: $(BUILD_DIR)
-	$(CXX) $(SRC_DIR)/main.cpp $(DATASET_SRC) $(NN_SRC) $(INCLUDES) $(CXXFLAGS) -o $(BUILD_DIR)/ImageClassifier
+dirs:
+@mkdir -p $(BUILD_DIR) $(MODEL_DIR)
 
-# Predict single image
-predict: $(BUILD_DIR)
-	$(CXX) $(SRC_DIR)/Predict.cpp $(NN_SRC) $(DATASET_SRC) $(INCLUDES) $(CXXFLAGS) -o $(BUILD_DIR)/ImagePredict
+nn: dirs
+$(CXX) $(CXXFLAGS) $(SRC_DIR)/main.cpp $(MNIST_SRC) $(NN_SRC) \
+$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/classifier
 
-# Predict with true label and ASCII image
-predictprob: $(BUILD_DIR)
-	$(CXX) $(SRC_DIR)/PredictProb.cpp $(NN_SRC) $(DATASET_SRC) $(INCLUDES) $(CXXFLAGS) -o $(BUILD_DIR)/ImagePredictProb
+knn: dirs
+$(CXX) $(CXXFLAGS) $(SRC_DIR)/main.cpp $(MNIST_SRC) $(KNN_SRC) \
+$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/classifier_knn
+
+predict: dirs
+$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict.cpp $(MNIST_SRC) $(NN_SRC) \
+$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/predict
+
+visualize: dirs
+$(CXX) $(CXXFLAGS) $(SRC_DIR)/predict_visualize.cpp $(MNIST_SRC) $(NN_SRC) \
+$(INCLUDES) $(LDFLAGS) -o $(BUILD_DIR)/visualize
 
 clean:
-	rm -rf $(BUILD_DIR)/*
+rm -rf $(BUILD_DIR)/* $(MODEL_DIR)/*
+
+help:
+@echo "Targets:"
+@echo "  nn        - Build neural network classifier (default)"
+@echo "  knn       - Build KNN classifier"
+@echo "  predict   - Build single image predictor"
+@echo "  visualize - Build predictor with ASCII output"
+@echo "  clean     - Remove build artifacts"
