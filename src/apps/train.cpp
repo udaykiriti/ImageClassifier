@@ -169,7 +169,8 @@ ParseResult parseArgs(int argc, char* argv[], TrainConfig& config) {
 }
 
 std::unique_ptr<Classifier> createClassifier(const TrainConfig& config, std::string& model_path) {
-    model_path = "./models/";
+    model_path = "models/"; // Fixed path relative to execution root, but let's make it cleaner.
+    // Actually, let's keep it simple.
 
     if (config.model_type == "knn") {
         model_path += "knn.model";
@@ -266,23 +267,13 @@ int main(int argc, char* argv[]) {
     std::cout << "\n[" << classifier->name() << "] Training with "
               << train_images.size() << " samples...\n" << std::endl;
 
-    std::ifstream model_file(model_path);
-    if (model_file.good() && config.model_type == "nn") {
-        try {
-            classifier->load(model_path);
-            std::cout << "Loaded model: " << model_path << std::endl;
-        } catch (const std::exception& ex) {
-            std::cout << "Existing model could not be loaded (" << ex.what() << "). Retraining..." << std::endl;
-            classifier->train(train_images, train_labels);
-            classifier->save(model_path);
-            std::cout << "Saved model: " << model_path << std::endl;
-        }
-    } else {
-        classifier->train(train_images, train_labels);
-        if (config.model_type == "nn") {
-            classifier->save(model_path);
-            std::cout << "Saved model: " << model_path << std::endl;
-        }
+    // Always retrain unless explicitly told otherwise (feature for another day).
+    // For now, we assume running 'train' means we want to train a new model.
+    std::cout << "Training model..." << std::endl;
+    classifier->train(train_images, train_labels);
+    if (config.model_type == "nn") {
+        classifier->save(model_path);
+        std::cout << "Saved model: " << model_path << std::endl;
     }
 
     const double accuracy = classifier->evaluate(test_images, test_labels);
