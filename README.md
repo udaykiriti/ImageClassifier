@@ -1,189 +1,170 @@
 # ImageClassifier
 
-A C++ machine learning project for classifying fashion items from the Fashion-MNIST dataset.
+A C++17 Fashion-MNIST classifier project with:
+- an in-house neural network implementation,  
+- a KNN baseline with OpenMP acceleration, and  
+- both CLI and interactive TUI workflows.
 
-## Features
+## Highlights
 
-- In-house Neural Network classifier (784 -> 128 -> 10)
-- K-Nearest Neighbors (KNN) classifier with OpenMP parallelization
-- Command-line interface with configurable parameters
-- Strong input validation for dataset files and CLI arguments
-- ASCII visualization of item images
-- Model save/load functionality
+- In-house neural network (no external ML runtime)
+- KNN with distance-weighted voting (optional uniform voting)
+- Robust dataset/model/input validation
+- Interactive terminal UI (`./build/tui`)
+- Top-k probability output for predictions
 
-## Project Structure
+## Project Layout
 
-```
+```text
 ImageClassifier/
 ├── src/
-│   ├── apps/               # Application entry points
-│   │   ├── train.cpp       # Training and evaluation
-│   │   └── predict.cpp     # Single image prediction
-│   ├── classifiers/        # Classifier implementations
-│   │   ├── neural_net.cpp
-│   │   └── knn.cpp
-│   └── core/               # Core functionality
-│       ├── classifier.cpp  # Base classifier interface
-│       └── dataset.cpp     # Fashion-MNIST data loading
-├── include/                # Header files
-│   ├── types.hpp           # Common types and constants
-│   ├── classifier.hpp      # Classifier interface
-│   ├── dataset.hpp         # Dataset class
-│   ├── neural_net.hpp      # Neural network classifier
-│   └── knn.hpp             # KNN classifier
-├── scripts/                # Utility scripts
-│   ├── download_fashion_mnist.sh   # Download Fashion-MNIST dataset
-│   └── preprocess.py       # Image preprocessing
-├── data/                   # Fashion-MNIST dataset files
-├── models/                 # Saved model files
+│   ├── apps/               # train / predict / tui entrypoints
+│   ├── classifiers/        # neural_net + knn implementations
+│   └── core/               # dataset loader + classifier base logic
+├── include/                # public headers
+├── scripts/
+│   ├── download_fashion_mnist.sh
+│   └── preprocess.py
+├── data/                   # local datasets and sample inputs
+├── models/                 # generated model files
 ├── Makefile
 ├── CMakeLists.txt
-├── LICENSE
 └── README.md
 ```
 
 ## Requirements
 
-- C++17 compiler (g++, clang++)
-- OpenMP (optional, for parallel processing)
-- Python 3 with PIL and NumPy (for image preprocessing)
+- C++17 compiler (`g++` or `clang++`)
+- OpenMP (optional but recommended for KNN)
+- Python 3 + Pillow + NumPy (required only when using non-`.txt` image inputs like `.png`/`.jpg`)
 
-## Installation
+## Quick Start
 
 ```bash
 git clone https://github.com/udaykiriti/ImageClassifier.git
 cd ImageClassifier
-```
-
-Download Fashion-MNIST dataset:
-
-```bash
 ./scripts/download_fashion_mnist.sh
+make -j4
+./build/tui
 ```
 
 ## Build
 
 ```bash
-make train      # Build training app
-make predict    # Build prediction app
-make tui        # Build interactive terminal UI
-make            # Build all
-make clean      # Clean build files
+make train
+make predict
+make tui
+make            # builds all
+make clean      # remove build outputs and generated models
 ```
 
 ## Usage
 
-### Training
+### 1. Train / Evaluate
 
 ```bash
-# Neural Network (default)
+# Neural network (default)
 ./build/train
 
-# Neural Network with custom parameters
+# Neural network with explicit hyperparameters
 ./build/train --model nn --train 5000 --test 1000 --epochs 15 --batch 64 --hidden 256 --lr 0.01 --l2 0.0001 --seed 42
 
-# KNN classifier
-./build/train --model knn --train 1000 --test 200 --k 5
+# KNN
+./build/train --model knn --train 2000 --test 500 --k 5
+
+# KNN with uniform voting
+./build/train --model knn --train 2000 --test 500 --k 5 --uniform-knn
 ```
 
-Options:
-| Flag | Description | Default |
-|------|-------------|---------|
-| --model | Classifier type (nn/knn) | nn |
-| --train | Training samples | 2000 |
-| --test | Test samples | 500 |
-| --epochs | NN training epochs | 10 |
-| --batch | NN batch size | 32 |
-| --hidden | NN hidden layer size | 128 |
-| --lr | NN learning rate | 0.01 |
-| --l2 | NN L2 regularization | 1e-4 |
-| --seed | NN random seed | 42 |
-| --k | KNN neighbors | 3 |
-| --uniform-knn | Use uniform voting for KNN (otherwise distance-weighted) | false |
+Train flags:
 
-### Prediction
+| Flag | Description | Default |
+|---|---|---|
+| `--model` | `nn` or `knn` | `nn` |
+| `--train` | Training samples | `2000` |
+| `--test` | Test samples | `500` |
+| `--epochs` | NN epochs | `10` |
+| `--batch` | NN batch size | `32` |
+| `--hidden` | NN hidden size | `128` |
+| `--lr` | NN learning rate | `0.01` |
+| `--l2` | NN L2 regularization | `1e-4` |
+| `--seed` | NN random seed | `42` |
+| `--k` | KNN neighbors | `3` |
+| `--uniform-knn` | Use uniform voting (disable distance weighting) | off |
+
+### 2. Predict
 
 ```bash
 # Basic prediction
 ./build/predict
 
-# With visualization
-./build/predict --show
+# Show ASCII image
+./build/predict --image data/image.txt --show
 
-# With true class comparison
-./build/predict --image data/image.txt --label 5 --show
+# Predict directly from PNG/JPG (auto-preprocessed)
+./build/predict --image data/image.png --topk 3
 
-# Show top-3 probabilities
+# Compare against known class
+./build/predict --image data/image.txt --label 8 --show
+
+# Show top-k probabilities
 ./build/predict --image data/image.txt --topk 3
 ```
 
-Options:
+Predict flags:
+
 | Flag | Description | Default |
-|------|-------------|---------|
-| --image | Image file path | ./data/image.txt |
-| --model | Model file path | ./models/neural_net.model |
-| --label | True class for comparison | - |
-| --topk | Show top-k class probabilities | 0 |
-| --show | Show ASCII visualization | false |
+|---|---|---|
+| `--image` | Input path (`.txt` or image file like `.png/.jpg`) | `./data/image.txt` |
+| `--model` | Model file path | `./models/neural_net.model` |
+| `--label` | True class id (0-9) | omitted |
+| `--topk` | Show top-k probabilities | `0` |
+| `--show` | Print ASCII image | off |
 
-`--image` accepts text pixels in either `0..255` or already-normalized `0..1` format.
+Image text format:
+- exactly 784 values (28x28)
+- values accepted in either `0..255` or normalized `0..1`
+- non-`.txt` files are auto-preprocessed via `scripts/preprocess.py`
+  - automatically inverts colors if light background is detected (Fashion-MNIST is white-on-black)
+- if preprocessing dependencies are missing: `pip install pillow numpy`
 
-### Interactive TUI
+### 3. Interactive TUI
 
 ```bash
 ./build/tui
 ```
 
-Menu options:
-- Train/Evaluate model
+Menu-driven options:
+- Train / Evaluate model
 - Predict from image
-- Show Fashion-MNIST class labels
+- Show class labels
 
-### Image Preprocessing
+## Fashion-MNIST Class Map
 
-Convert a PNG image to text format:
+| ID | Class |
+|---|---|
+| 0 | T-shirt/top |
+| 1 | Trouser |
+| 2 | Pullover |
+| 3 | Dress |
+| 4 | Coat |
+| 5 | Sandal |
+| 6 | Shirt |
+| 7 | Sneaker |
+| 8 | Bag |
+| 9 | Ankle boot |
 
-```bash
-python scripts/preprocess.py input.png data/image.txt
-```
+## Notes
 
-## Example Output
-
-```
-[NeuralNet] Training with 2000 samples...
-Training completed (10 epochs)
-
-Accuracy: 94.6%
-
-Sample Predictions:
-----------------------------------------
-Image 0 | True: 7 (Sneaker) | Predicted: 7 (Sneaker) [OK]
-............................
-..............@@@#..........
-.............@@@@@..........
-............@@@@@@..........
-...........@@@@@@@..........
-```
-
-## Architecture
-
-### Neural Network
-- Input: 784 neurons (28x28 pixels)
-- Hidden: 128 neurons (ReLU)
-- Output: 10 neurons (Softmax)
-- Optimizer: Mini-batch SGD with learning-rate decay
-- Loss: Cross-entropy
-- Regularization: L2 weight decay
-
-### KNN
-- Distance: Euclidean
-- Voting: Distance-weighted by default (or uniform with `--uniform-knn`)
-- Parallelized with OpenMP
+- Datasets and trained models are not tracked as source artifacts.
+- If `predict` reports missing/unsupported model, run `./build/train --model nn ...` once to regenerate `models/neural_net.model`.
+- If `predict` results are poor for your own images, ensure the background is dark (or rely on auto-inversion in `preprocess.py`).
+- If dataset files are missing, run `./scripts/download_fashion_mnist.sh`.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE)
+MIT. See [LICENSE](LICENSE).
 
-## References
+## Reference
 
-- [Fashion-MNIST Database](https://github.com/zalandoresearch/fashion-mnist)
+- Fashion-MNIST: https://github.com/zalandoresearch/fashion-mnist
