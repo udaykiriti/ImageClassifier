@@ -11,7 +11,24 @@ import numpy as np
 def convert_image(input_path="data/image.png", output_path="data/image.txt"):
     img = Image.open(input_path).convert("L")
     img = img.resize((28, 28))
-    pixels = np.array(img).flatten()
+    
+    # Invert if background is white (Fashion-MNIST is white-on-black)
+    # Check corners to guess background color
+    width, height = img.size
+    corners = [
+        img.getpixel((0, 0)),
+        img.getpixel((0, height-1)),
+        img.getpixel((width-1, 0)),
+        img.getpixel((width-1, height-1))
+    ]
+    avg_corner = sum(corners) / 4.0
+    
+    pixels = np.array(img)
+    if avg_corner > 127:
+        print("Inverting image (detected light background)...")
+        pixels = 255 - pixels
+        
+    pixels = pixels.flatten()
     np.savetxt(output_path, pixels, fmt="%d")
     print(f"Converted: {input_path} -> {output_path}")
     print(f"Shape: 28x28 = 784 pixels")
