@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cctype>
+#include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -49,6 +51,19 @@ std::string trim(std::string s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
     s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
     return s;
+}
+
+std::string shellQuote(const std::string& value) {
+    std::string escaped = "'";
+    for (char ch : value) {
+        if (ch == '\'') {
+            escaped += "'\\''";
+        } else {
+            escaped += ch;
+        }
+    }
+    escaped += "'";
+    return escaped;
 }
 
 void printDivider() {
@@ -182,6 +197,37 @@ Image loadImageFromTextFile(const std::string& path) {
         return {};
     }
 
+    return image;
+}
+
+Image loadImageFromAnyFile(const std::string& path) {
+    namespace fs = std::filesystem;
+
+    const fs::path input_path(path);
+    if (!fs::exists(input_path)) {
+        std::cout << "Input file does not exist: " << path << "\n";
+        return {};
+    }
+
+    std::string ext = input_path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (ext == ".txt") {
+        return loadImageFromTextFile(path);
+    }
+
+    const fs::path tmp_path = fs::temp_directory_path() / "imageclassifier_tui_input.txt";
+    const std::string command = "python3 scripts/preprocess.py " +
+        shellQuote(input_path.string()) + " " + shellQuote(tmp_path.string());
+    const int rc = std::system(command.c_str());
+    if (rc != 0 || !fs::exists(tmp_path)) {
+        std::cout << "Failed to preprocess image via scripts/preprocess.py (exit code " << rc << ")\n";
+        std::cout << "Hint: install preprocessing deps with: pip install pillow numpy\n";
+        return {};
+    }
+
+    Image image = loadImageFromTextFile(tmp_path.string());
+    std::error_code ec;
+    fs::remove(tmp_path, ec);
     return image;
 }
 
@@ -358,7 +404,7 @@ PredictConfig promptPredictConfig() {
 void runPredictionWorkflow() {
     const PredictConfig config = promptPredictConfig();
 
-    const Image image = loadImageFromTextFile(config.image_path);
+    const Image image = loadImageFromAnyFile(config.image_path);
     if (image.empty()) {
         return;
     }
