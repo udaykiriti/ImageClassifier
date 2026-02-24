@@ -2,9 +2,12 @@
 #include "neural_net.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -31,12 +34,25 @@ enum class ParseResult {
 void printUsage(const char* prog) {
     std::cout << "Usage: " << prog << " [options]\n"
               << "Options:\n"
-              << "  --image <path>      Image text file (default: ./data/image.txt)\n"
+              << "  --image <path>      Input image path (.txt or image file, default: ./data/image.txt)\n"
               << "  --model <path>      Model file (default: ./models/neural_net.model)\n"
               << "  --label <class_id>  True Fashion-MNIST class id (0-9, optional)\n"
               << "  --topk <count>      Show top-k class probabilities (default: 0)\n"
               << "  --show              Show ASCII visualization\n"
               << "  --help              Show this help\n";
+}
+
+std::string shellQuote(const std::string& value) {
+    std::string escaped = "'";
+    for (char ch : value) {
+        if (ch == '\'') {
+            escaped += "'\\''";
+        } else {
+            escaped += ch;
+        }
+    }
+    escaped += "'";
+    return escaped;
 }
 
 bool parseInt(const char* value, const char* flag_name, int& out) {
@@ -147,6 +163,38 @@ Image loadImageFromTextFile(const std::string& path) {
     return image;
 }
 
+Image loadImageFromAnyFile(const std::string& path) {
+    namespace fs = std::filesystem;
+
+    const fs::path input_path(path);
+    if (!fs::exists(input_path)) {
+        std::cerr << "Input file does not exist: " << path << std::endl;
+        return {};
+    }
+
+    std::string ext = input_path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (ext == ".txt") {
+        return loadImageFromTextFile(path);
+    }
+
+    const fs::path tmp_path = fs::temp_directory_path() / "imageclassifier_predict_input.txt";
+    const std::string command = "python3 scripts/preprocess.py " +
+        shellQuote(input_path.string()) + " " + shellQuote(tmp_path.string());
+
+    const int rc = std::system(command.c_str());
+    if (rc != 0 || !fs::exists(tmp_path)) {
+        std::cerr << "Failed to preprocess image via scripts/preprocess.py (exit code " << rc << ")" << std::endl;
+        std::cerr << "Hint: install preprocessing deps with: pip install pillow numpy" << std::endl;
+        return {};
+    }
+
+    Image image = loadImageFromTextFile(tmp_path.string());
+    std::error_code ec;
+    fs::remove(tmp_path, ec);
+    return image;
+}
+
 }  // namespace
 }  // namespace mnist
 
@@ -160,7 +208,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const mnist::Image image = mnist::loadImageFromTextFile(config.image_path);
+    const mnist::Image image = mnist::loadImageFromAnyFile(config.image_path);
     if (image.empty()) {
         return 1;
     }
