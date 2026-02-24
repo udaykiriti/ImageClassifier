@@ -1,45 +1,107 @@
 # ImageClassifier Makefile
 
-CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
-LDFLAGS = -fopenmp
+# Override from CLI/env when needed, e.g.:
+#   make CXX=clang++ CONFIG=debug
+CXX ?= g++
+CONFIG ?= release
+OPENMP ?= 1
 
-BUILD_DIR = build
-MODEL_DIR = models
-INC = -Iinclude
+BUILD_DIR := build
+MODEL_DIR := models
 
-CORE_SRC = src/core/classifier.cpp src/core/dataset.cpp
-NN_SRC = src/classifiers/neural_net.cpp
-KNN_SRC = src/classifiers/knn.cpp
+CPPFLAGS := -Iinclude
+CXXFLAGS_BASE := -std=c++17 -Wall -Wextra
+CXXFLAGS_RELEASE := -O2
+CXXFLAGS_DEBUG := -O0 -g
+LDFLAGS :=
+LDLIBS :=
 
-.PHONY: all clean dirs train predict tui help
+ifeq ($(CONFIG),debug)
+  CXXFLAGS := $(CXXFLAGS_BASE) $(CXXFLAGS_DEBUG)
+else
+  CXXFLAGS := $(CXXFLAGS_BASE) $(CXXFLAGS_RELEASE)
+endif
+
+ifeq ($(OPENMP),1)
+  CXXFLAGS += -fopenmp
+  LDFLAGS += -fopenmp
+else
+  CXXFLAGS += -Wno-unknown-pragmas
+endif
+
+CORE_SRC := src/core/classifier.cpp src/core/dataset.cpp
+NN_SRC := src/classifiers/neural_net.cpp
+KNN_SRC := src/classifiers/knn.cpp
+
+TRAIN_SRC := src/apps/train.cpp $(CORE_SRC) $(NN_SRC) $(KNN_SRC)
+PREDICT_SRC := src/apps/predict.cpp $(CORE_SRC) $(NN_SRC)
+TUI_SRC := src/apps/tui.cpp $(CORE_SRC) $(NN_SRC) $(KNN_SRC)
+
+TRAIN_BIN := $(BUILD_DIR)/train
+PREDICT_BIN := $(BUILD_DIR)/predict
+TUI_BIN := $(BUILD_DIR)/tui
+
+.PHONY: all clean dirs train predict tui test run-train run-predict run-tui format-check help
 
 all: dirs train predict tui
 
 dirs:
 	@mkdir -p $(BUILD_DIR) $(MODEL_DIR)
 
-train: dirs
-	$(CXX) $(CXXFLAGS) src/apps/train.cpp $(CORE_SRC) $(NN_SRC) $(KNN_SRC) $(INC) $(LDFLAGS) -o $(BUILD_DIR)/train
+train: $(TRAIN_BIN)
 
-predict: dirs
-	$(CXX) $(CXXFLAGS) src/apps/predict.cpp $(CORE_SRC) $(NN_SRC) $(INC) $(LDFLAGS) -o $(BUILD_DIR)/predict
+predict: $(PREDICT_BIN)
 
-tui: dirs
-	$(CXX) $(CXXFLAGS) src/apps/tui.cpp $(CORE_SRC) $(NN_SRC) $(KNN_SRC) $(INC) $(LDFLAGS) -o $(BUILD_DIR)/tui
+tui: $(TUI_BIN)
+
+test: $(TRAIN_BIN) $(PREDICT_BIN) $(TUI_BIN)
+	@echo "Running smoke tests..."
+	@./$(TRAIN_BIN) --help >/dev/null
+	@./$(PREDICT_BIN) --help >/dev/null
+	@printf '4\n' | ./$(TUI_BIN) >/dev/null
+	@echo "Smoke tests passed."
+
+$(TRAIN_BIN): $(TRAIN_SRC) | dirs
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ $(LDFLAGS) $(LDLIBS) -o $@
+
+$(PREDICT_BIN): $(PREDICT_SRC) | dirs
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ $(LDFLAGS) $(LDLIBS) -o $@
+
+$(TUI_BIN): $(TUI_SRC) | dirs
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ $(LDFLAGS) $(LDLIBS) -o $@
+
+run-train: $(TRAIN_BIN)
+	./$(TRAIN_BIN)
+
+run-predict: $(PREDICT_BIN)
+	./$(PREDICT_BIN)
+
+run-tui: $(TUI_BIN)
+	./$(TUI_BIN)
+
+format-check:
+	@echo "No formatter configured."
 
 clean:
-	rm -rf $(BUILD_DIR)/* $(MODEL_DIR)/*.model
+	rm -rf $(BUILD_DIR)/*
+	rm -f $(MODEL_DIR)/*.model
 
 help:
 	@echo "Usage:"
-	@echo "  make train    - Build training app"
-	@echo "  make predict  - Build prediction app"
-	@echo "  make tui      - Build interactive terminal UI"
-	@echo "  make clean    - Remove build files"
+	@echo "  make [all|train|predict|tui|test|clean|help]"
 	@echo ""
-	@echo "Run:"
-	@echo "  ./build/train --model nn --train 5000 --epochs 10"
-	@echo "  ./build/train --model knn --train 1000 --k 5"
-	@echo "  ./build/predict --image data/image.txt --show"
-	@echo "  ./build/tui"
+	@echo "Build config:"
+	@echo "  CONFIG=release|debug   (default: release)"
+	@echo "  OPENMP=1|0             (default: 1)"
+	@echo "  CXX=<compiler>         (default: g++)"
+	@echo ""
+	@echo "Run helpers:"
+	@echo "  make run-train"
+	@echo "  make run-predict"
+	@echo "  make run-tui"
+	@echo "  make test"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make -j4"
+	@echo "  make CONFIG=debug"
+	@echo "  make OPENMP=0"
