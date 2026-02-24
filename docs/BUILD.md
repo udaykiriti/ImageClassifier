@@ -15,7 +15,6 @@ This document covers all build methods and Makefile targets.
 
 | Library | Required | Purpose |
 |---------|----------|---------|
-| tiny-dnn | Yes | Neural network implementation |
 | OpenMP | Optional | Parallel processing for KNN |
 | Python 3 | Optional | Image preprocessing |
 | PIL/Pillow | Optional | Image loading in Python |
@@ -34,6 +33,7 @@ make
 # Build specific target
 make train
 make predict
+make tui
 
 # Clean build files
 make clean
@@ -67,7 +67,7 @@ g++ -std=c++17 -O2 -Wall -Wextra \
     src/core/dataset.cpp \
     src/classifiers/neural_net.cpp \
     src/classifiers/knn.cpp \
-    -Iinclude -Itiny-dnn \
+    -Iinclude \
     -fopenmp \
     -o build/train
 
@@ -77,7 +77,7 @@ g++ -std=c++17 -O2 -Wall -Wextra \
     src/core/classifier.cpp \
     src/core/dataset.cpp \
     src/classifiers/neural_net.cpp \
-    -Iinclude -Itiny-dnn \
+    -Iinclude \
     -fopenmp \
     -o build/predict
 ```
@@ -97,7 +97,7 @@ LDFLAGS = -fopenmp
 # Directories
 BUILD_DIR = build
 MODEL_DIR = models
-INC = -Iinclude -Itiny-dnn
+INC = -Iinclude
 
 # Source files
 CORE_SRC = src/core/classifier.cpp src/core/dataset.cpp
@@ -109,9 +109,10 @@ KNN_SRC = src/classifiers/knn.cpp
 
 | Target | Description | Output |
 |--------|-------------|--------|
-| `all` | Build train and predict | build/train, build/predict |
+| `all` | Build train, predict, and tui | build/train, build/predict, build/tui |
 | `train` | Build training app | build/train |
 | `predict` | Build prediction app | build/predict |
+| `tui` | Build interactive terminal UI | build/tui |
 | `dirs` | Create build and models directories | - |
 | `clean` | Remove build artifacts | - |
 | `help` | Show available targets | - |
@@ -150,6 +151,23 @@ Compiles:
 - src/classifiers/neural_net.cpp
 
 Output: `build/predict`
+
+#### make tui
+
+Builds the interactive terminal UI.
+
+```bash
+make tui
+```
+
+Compiles:
+- src/apps/tui.cpp
+- src/core/classifier.cpp
+- src/core/dataset.cpp
+- src/classifiers/neural_net.cpp
+- src/classifiers/knn.cpp
+
+Output: `build/tui`
 
 #### make clean
 
@@ -257,17 +275,6 @@ make
 
 ## Troubleshooting
 
-### Issue: tiny-dnn not found
-
-```
-fatal error: tiny_dnn/tiny_dnn.h: No such file or directory
-```
-
-Solution:
-```bash
-git submodule update --init
-```
-
 ### Issue: OpenMP not found
 
 ```
@@ -315,7 +322,6 @@ Solution: Ensure Makefile uses tabs, not spaces, for indentation.
 
 | Target | Time | Notes |
 |--------|------|-------|
-| train | 60-120s | Includes tiny-dnn templates |
-| predict | 60-120s | Includes tiny-dnn templates |
-
-Most compile time is spent instantiating tiny-dnn templates.
+| train | 10-40s | Includes NN and KNN |
+| predict | 5-20s | Includes NN only |
+| tui | 10-40s | Includes menu + NN + KNN |

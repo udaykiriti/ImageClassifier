@@ -8,31 +8,31 @@ This document describes all utility scripts in the `scripts/` folder.
 
 | Script | Language | Purpose |
 |--------|----------|---------|
-| download_mnist.sh | Bash | Download MNIST dataset |
+| download_fashion_mnist.sh | Bash | Download Fashion-MNIST dataset |
 | preprocess.py | Python | Convert images to text format |
 
 ---
 
-## download_mnist.sh
+## download_fashion_mnist.sh
 
-Downloads the MNIST dataset from the official source.
+Downloads the Fashion-MNIST dataset from the official source.
 
 ### Location
 
 ```
-scripts/download_mnist.sh
+scripts/download_fashion_mnist.sh
 ```
 
 ### Usage
 
 ```bash
-./scripts/download_mnist.sh
+./scripts/download_fashion_mnist.sh
 ```
 
 ### What It Does
 
 1. Creates `data/` directory if not exists
-2. Downloads 4 gzipped files from yann.lecun.com
+2. Downloads 4 gzipped files from the Fashion-MNIST mirror
 3. Extracts files to `data/` directory
 4. Skips files that already exist
 
@@ -51,7 +51,7 @@ scripts/download_mnist.sh
 #!/bin/bash
 
 DATA_DIR="data"
-BASE_URL="http://yann.lecun.com/exdb/mnist"
+BASE_URL="https://fashion-mnist.s3-website.eu-central-1.amazonaws.com"
 
 FILES=(
     "train-images-idx3-ubyte.gz"
@@ -63,12 +63,12 @@ FILES=(
 mkdir -p "$DATA_DIR"
 cd "$DATA_DIR"
 
-echo "Downloading MNIST dataset..."
+echo "Downloading Fashion-MNIST dataset..."
 
 for file in "${FILES[@]}"; do
     if [ ! -f "${file%.gz}" ]; then
         echo "Downloading $file..."
-        curl -O "$BASE_URL/$file"
+        curl -fsSLO "$BASE_URL/$file"
         echo "Extracting $file..."
         gunzip -f "$file"
     else
@@ -77,7 +77,7 @@ for file in "${FILES[@]}"; do
 done
 
 echo ""
-echo "MNIST dataset downloaded to $DATA_DIR/"
+echo "Fashion-MNIST dataset downloaded to $DATA_DIR/"
 ls -lh *.ubyte 2>/dev/null || echo "No .ubyte files found"
 ```
 
@@ -89,7 +89,7 @@ ls -lh *.ubyte 2>/dev/null || echo "No .ubyte files found"
 ### Example Output
 
 ```
-Downloading MNIST dataset...
+Downloading Fashion-MNIST dataset...
 Downloading train-images-idx3-ubyte.gz...
 Extracting train-images-idx3-ubyte.gz...
 Downloading train-labels-idx1-ubyte.gz...
@@ -99,7 +99,7 @@ Extracting t10k-images-idx3-ubyte.gz...
 Downloading t10k-labels-idx1-ubyte.gz...
 Extracting t10k-labels-idx1-ubyte.gz...
 
-MNIST dataset downloaded to data/
+Fashion-MNIST dataset downloaded to data/
 -rw-r--r-- 1 user user 45M Jan 16 10:00 train-images-idx3-ubyte
 -rw-r--r-- 1 user user 59K Jan 16 10:00 train-labels-idx1-ubyte
 -rw-r--r-- 1 user user 7.5M Jan 16 10:00 t10k-images-idx3-ubyte
@@ -111,7 +111,7 @@ MNIST dataset downloaded to data/
 #### Permission denied
 
 ```bash
-chmod +x scripts/download_mnist.sh
+chmod +x scripts/download_fashion_mnist.sh
 ```
 
 #### curl not found
@@ -128,8 +128,8 @@ brew install curl
 
 #### Connection timeout
 
-The MNIST server may be slow. Try running the script again or download manually from:
-http://yann.lecun.com/exdb/mnist/
+The Fashion-MNIST mirror may be slow. Try running the script again or download manually from:
+https://github.com/zalandoresearch/fashion-mnist
 
 ---
 
@@ -150,7 +150,7 @@ scripts/preprocess.py
 python scripts/preprocess.py
 
 # Custom input
-python scripts/preprocess.py path/to/digit.png
+python scripts/preprocess.py path/to/fashion_item.png
 
 # Custom input and output
 python scripts/preprocess.py input.png output.txt
@@ -169,7 +169,7 @@ python scripts/preprocess.py input.png output.txt
 ```python
 #!/usr/bin/env python3
 """
-Convert an image file to a text file of pixel values for digit prediction.
+Convert an image file to a text file of pixel values for class prediction.
 Usage: python scripts/preprocess.py [input_image] [output_file]
 """
 
@@ -231,11 +231,11 @@ Each value represents pixel intensity:
 
 ### Example Workflow
 
-1. Create or obtain a digit image (e.g., handwritten 7)
+1. Create or obtain a item image (e.g., sample fashion item)
 
 2. Convert to text:
    ```bash
-   python scripts/preprocess.py my_digit.png data/image.txt
+   python scripts/preprocess.py my_item.png data/image.txt
    ```
 
 3. Run prediction:
@@ -245,8 +245,8 @@ Each value represents pixel intensity:
 
 ### Tips for Best Results
 
-1. Use high contrast images (black digit on white background)
-2. Center the digit in the image
+1. Use high contrast images (black item on white background)
+2. Center the fashion item in the image
 3. Use square images for best aspect ratio
 4. For dark backgrounds, invert the image first
 
@@ -264,7 +264,7 @@ The script automatically resizes to 28x28. Original size does not matter.
 
 #### Wrong colors (inverted)
 
-MNIST uses white digits on black background. If your image is inverted:
+Fashion-MNIST uses white items on black background. If your image is inverted:
 
 ```python
 # Add this line after loading

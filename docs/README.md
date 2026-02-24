@@ -16,9 +16,9 @@ This folder contains detailed documentation for the ImageClassifier project.
 
 1. Clone and setup:
    ```bash
-   git clone --recurse-submodules https://github.com/udaykiriti/ImageClassifier.git
+   git clone https://github.com/udaykiriti/ImageClassifier.git
    cd ImageClassifier
-   ./scripts/download_mnist.sh
+   ./scripts/download_fashion_mnist.sh
    ```
 
 2. Build:

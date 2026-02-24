@@ -22,9 +22,14 @@ Common types and constants used throughout the project.
 
 | Constant | Value | Description |
 |----------|-------|-------------|
-| `IMAGE_SIZE` | 28 | Width and height of MNIST images |
+| `IMAGE_SIZE` | 28 | Width and height of Fashion-MNIST images |
 | `IMAGE_PIXELS` | 784 | Total pixels per image (28 * 28) |
-| `NUM_CLASSES` | 10 | Number of digit classes (0-9) |
+| `NUM_CLASSES` | 10 | Number of fashion classes (0-9) |
+| `FASHION_CLASS_NAMES` | array[10] | Class-name mapping for labels 0-9 |
+
+#### Utility Function
+
+`className(int label)` returns the human-readable Fashion-MNIST class name.
 
 #### Example Usage
 
@@ -33,6 +38,7 @@ Common types and constants used throughout the project.
 
 mnist::Image img(mnist::IMAGE_PIXELS, 0.0);
 mnist::Labels labels = {0, 1, 2, 3};
+std::cout << mnist::className(7);  // "Sneaker"
 ```
 
 ---
@@ -75,7 +81,7 @@ virtual std::string name() const = 0;
 
 ## dataset.hpp
 
-MNIST dataset loading and image utilities.
+Fashion-MNIST dataset loading and image utilities.
 
 ### Class: Dataset
 
@@ -132,7 +138,7 @@ train.printImage(0);  // Print first image as ASCII
 
 ## neural_net.hpp
 
-Neural network classifier using tiny-dnn.
+Neural network classifier implemented in-project (no external ML dependency).
 
 ### Class: NeuralNet
 
@@ -173,7 +179,7 @@ Layer 4: Softmax Activation
 | Method | Description |
 |--------|-------------|
 | `train(images, labels)` | Train network on dataset |
-| `predict(image)` | Get predicted digit (0-9) |
+| `predict(image)` | Get predicted class (0-9) |
 | `save(path)` | Save trained model to file |
 | `load(path)` | Load model from file |
 | `name()` | Returns "NeuralNet" |
@@ -186,7 +192,7 @@ Layer 4: Softmax Activation
 mnist::NeuralNet model(15, 64);  // 15 epochs, batch size 64
 model.train(train_images, train_labels);
 
-int digit = model.predict(test_image);
+int predicted_class = model.predict(test_image);
 model.save("./models/neural_net.model");
 ```
 
@@ -223,7 +229,7 @@ explicit KNN(int k = 3);
 | Method | Description |
 |--------|-------------|
 | `train(images, labels)` | Store training data |
-| `predict(image)` | Get predicted digit using k-NN |
+| `predict(image)` | Get predicted class using k-NN |
 | `name()` | Returns "KNN" |
 
 #### Notes
@@ -238,9 +244,9 @@ explicit KNN(int k = 3);
 #include "knn.hpp"
 
 mnist::KNN model(5);  // k=5 neighbors
-model.fit(train_images, train_labels);
+model.train(train_images, train_labels);
 
-int digit = model.predict(test_image);
+int predicted_class = model.predict(test_image);
 double accuracy = model.evaluate(test_images, test_labels);
 ```
 

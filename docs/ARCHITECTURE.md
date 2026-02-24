@@ -13,7 +13,7 @@ ImageClassifier/
 │   │   └── knn.cpp         # K-Nearest Neighbors implementation
 │   └── core/               # Core functionality
 │       ├── classifier.cpp  # Base classifier implementation
-│       └── dataset.cpp     # MNIST dataset loader
+│       └── dataset.cpp     # Fashion-MNIST dataset loader
 ├── include/                # Header files
 │   ├── types.hpp           # Common types and constants
 │   ├── classifier.hpp      # Abstract classifier interface
@@ -21,7 +21,7 @@ ImageClassifier/
 │   ├── neural_net.hpp      # Neural network class declaration
 │   └── knn.hpp             # KNN class declaration
 ├── scripts/                # Utility scripts
-│   ├── download_mnist.sh   # MNIST dataset downloader
+│   ├── download_fashion_mnist.sh   # Fashion-MNIST dataset downloader
 │   └── preprocess.py       # Image preprocessing utility
 ├── data/                   # Dataset files
 │   ├── train-images-idx3-ubyte
@@ -34,7 +34,6 @@ ImageClassifier/
 ├── build/                  # Compiled binaries
 │   ├── train               # Training executable
 │   └── predict             # Prediction executable
-├── tiny-dnn/               # Tiny-dnn library (git submodule)
 ├── docs/                   # Documentation
 ├── Makefile                # Build configuration
 ├── CMakeLists.txt          # CMake configuration
@@ -141,7 +140,6 @@ namespace mnist {
 
 | Library | Purpose | Location |
 |---------|---------|----------|
-| tiny-dnn | Neural network implementation | ./tiny-dnn/ (submodule) |
 | OpenMP | Parallel processing for KNN | System library |
 
 ### Standard Library Headers
@@ -153,11 +151,11 @@ namespace mnist {
 | fstream | File I/O |
 | algorithm | min, max, distance |
 | memory | unique_ptr for polymorphism |
-| cstdint | uint32_t for MNIST format |
+| cstdint | uint32_t for Fashion-MNIST format |
 
 ## File Formats
 
-### MNIST Binary Format
+### Fashion-MNIST Binary Format
 
 Images file header:
 ```
@@ -186,5 +184,5 @@ Row-major order (left to right, top to bottom)
 
 ### Model Format
 
-Neural network models are saved using tiny-dnn's binary format.
+Neural network models are saved using the project's custom binary format.
 Contains network architecture and trained weights.

@@ -9,7 +9,7 @@ This document covers command-line usage for all executables.
 | Binary | Purpose | Location |
 |--------|---------|----------|
 | train | Train and evaluate classifiers | build/train |
-| predict | Predict digit from image file | build/predict |
+| predict | Predict class from image file | build/predict |
 
 ---
 
@@ -81,14 +81,14 @@ Accuracy: 94.6%
 
 Sample Predictions:
 ----------------------------------------
-Image 0 | True: 7 | Predicted: 7 [OK]
+Image 0 | True: 7 (Sneaker) | Predicted: 7 (Sneaker) [OK]
 ............................
 ..............@@@#..........
 .............@@@@@..........
 ............@@@@@@..........
 ...
 ----------------------------------------
-Image 1 | True: 2 | Predicted: 2 [OK]
+Image 1 | True: 2 (Pullover) | Predicted: 2 (Pullover) [OK]
 ...
 ```
 
@@ -124,7 +124,7 @@ Prediction application for single images.
 |--------|------|---------|-------------|
 | --image | string | ./data/image.txt | Path to image text file |
 | --model | string | ./models/neural_net.model | Path to trained model |
-| --label | integer | -1 | True label for comparison |
+| --label | integer | -1 | True class for comparison |
 | --show | flag | false | Display ASCII visualization |
 | --help | flag | - | Show help message |
 
@@ -138,7 +138,7 @@ Prediction application for single images.
 
 Output:
 ```
-Predicted digit: 7
+Predicted class: 7 (Sneaker)
 ```
 
 #### With Visualization
@@ -156,7 +156,7 @@ ASCII Image:
 ............@@@@@@..........
 ...
 
-Predicted digit: 7
+Predicted class: 7 (Sneaker)
 ```
 
 #### With Label Comparison
@@ -170,22 +170,22 @@ Output:
 ASCII Image:
 ...
 
-Predicted digit: 7
-True label: 7
+Predicted class: 7 (Sneaker)
+True class: 7 (Sneaker)
 CORRECT
 ```
 
 #### Custom Image and Model
 
 ```bash
-./build/predict --image data/my_digit.txt --model models/my_model.model --show
+./build/predict --image data/my_item.txt --model models/my_model.model --show
 ```
 
 ### Image File Format
 
 The image text file must contain:
-- Exactly 784 integer values (28x28 pixels)
-- Values in range 0-255
+- Exactly 784 values (28x28 pixels)
+- Values in range 0-255 or already-normalized 0-1
 - Space or newline separated
 - Row-major order (left to right, top to bottom)
 
@@ -205,7 +205,7 @@ python scripts/preprocess.py input.png data/image.txt
 ./build/predict --show
 ```
 
-#### Method 2: Extract from MNIST
+#### Method 2: Extract from Fashion-MNIST
 
 Write a simple program to extract and save test images:
 
@@ -228,11 +228,11 @@ for (double val : test.images()[0]) {
 
 ```bash
 # 1. Setup
-git clone --recurse-submodules https://github.com/udaykiriti/ImageClassifier.git
+git clone https://github.com/udaykiriti/ImageClassifier.git
 cd ImageClassifier
 
 # 2. Download dataset
-./scripts/download_mnist.sh
+./scripts/download_fashion_mnist.sh
 
 # 3. Build
 make
@@ -248,7 +248,7 @@ make
 
 ```bash
 # 1. Prepare image
-python scripts/preprocess.py my_handwritten_digit.png data/image.txt
+python scripts/preprocess.py my_fashion_item.png data/image.txt
 
 # 2. Run prediction
 ./build/predict --show --label 7
@@ -309,9 +309,9 @@ Cannot open: ./data/train-images-idx3-ubyte
 Failed to load dataset
 ```
 
-Solution: Download MNIST dataset
+Solution: Download Fashion-MNIST dataset
 ```bash
-./scripts/download_mnist.sh
+./scripts/download_fashion_mnist.sh
 ```
 
 ### Model not found

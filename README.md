@@ -1,13 +1,14 @@
 # ImageClassifier
 
-A C++ machine learning project for classifying handwritten digits from the MNIST dataset.
+A C++ machine learning project for classifying fashion items from the Fashion-MNIST dataset.
 
 ## Features
 
-- Neural Network classifier (784 -> 128 -> 10) using Tiny-dnn
+- In-house Neural Network classifier (784 -> 128 -> 10)
 - K-Nearest Neighbors (KNN) classifier with OpenMP parallelization
 - Command-line interface with configurable parameters
-- ASCII visualization of digit images
+- Strong input validation for dataset files and CLI arguments
+- ASCII visualization of item images
 - Model save/load functionality
 
 ## Project Structure
@@ -23,7 +24,7 @@ ImageClassifier/
 │   │   └── knn.cpp
 │   └── core/               # Core functionality
 │       ├── classifier.cpp  # Base classifier interface
-│       └── dataset.cpp     # MNIST data loading
+│       └── dataset.cpp     # Fashion-MNIST data loading
 ├── include/                # Header files
 │   ├── types.hpp           # Common types and constants
 │   ├── classifier.hpp      # Classifier interface
@@ -31,11 +32,10 @@ ImageClassifier/
 │   ├── neural_net.hpp      # Neural network classifier
 │   └── knn.hpp             # KNN classifier
 ├── scripts/                # Utility scripts
-│   ├── download_mnist.sh   # Download MNIST dataset
+│   ├── download_fashion_mnist.sh   # Download Fashion-MNIST dataset
 │   └── preprocess.py       # Image preprocessing
-├── data/                   # MNIST dataset files
+├── data/                   # Fashion-MNIST dataset files
 ├── models/                 # Saved model files
-├── tiny-dnn/               # Tiny-dnn library (submodule)
 ├── Makefile
 ├── CMakeLists.txt
 ├── LICENSE
@@ -45,21 +45,20 @@ ImageClassifier/
 ## Requirements
 
 - C++17 compiler (g++, clang++)
-- Tiny-dnn (included as git submodule)
 - OpenMP (optional, for parallel processing)
 - Python 3 with PIL and NumPy (for image preprocessing)
 
 ## Installation
 
 ```bash
-git clone --recurse-submodules https://github.com/udaykiriti/ImageClassifier.git
+git clone https://github.com/udaykiriti/ImageClassifier.git
 cd ImageClassifier
 ```
 
-Download MNIST dataset:
+Download Fashion-MNIST dataset:
 
 ```bash
-./scripts/download_mnist.sh
+./scripts/download_fashion_mnist.sh
 ```
 
 ## Build
@@ -67,6 +66,7 @@ Download MNIST dataset:
 ```bash
 make train      # Build training app
 make predict    # Build prediction app
+make tui        # Build interactive terminal UI
 make            # Build all
 make clean      # Clean build files
 ```
@@ -80,7 +80,7 @@ make clean      # Clean build files
 ./build/train
 
 # Neural Network with custom parameters
-./build/train --model nn --train 5000 --test 1000 --epochs 15
+./build/train --model nn --train 5000 --test 1000 --epochs 15 --batch 64 --hidden 256 --lr 0.01 --l2 0.0001 --seed 42
 
 # KNN classifier
 ./build/train --model knn --train 1000 --test 200 --k 5
@@ -93,7 +93,13 @@ Options:
 | --train | Training samples | 2000 |
 | --test | Test samples | 500 |
 | --epochs | NN training epochs | 10 |
+| --batch | NN batch size | 32 |
+| --hidden | NN hidden layer size | 128 |
+| --lr | NN learning rate | 0.01 |
+| --l2 | NN L2 regularization | 1e-4 |
+| --seed | NN random seed | 42 |
 | --k | KNN neighbors | 3 |
+| --uniform-knn | Use uniform voting for KNN (otherwise distance-weighted) | false |
 
 ### Prediction
 
@@ -104,8 +110,11 @@ Options:
 # With visualization
 ./build/predict --show
 
-# With true label comparison
+# With true class comparison
 ./build/predict --image data/image.txt --label 5 --show
+
+# Show top-3 probabilities
+./build/predict --image data/image.txt --topk 3
 ```
 
 Options:
@@ -113,8 +122,22 @@ Options:
 |------|-------------|---------|
 | --image | Image file path | ./data/image.txt |
 | --model | Model file path | ./models/neural_net.model |
-| --label | True label for comparison | - |
+| --label | True class for comparison | - |
+| --topk | Show top-k class probabilities | 0 |
 | --show | Show ASCII visualization | false |
+
+`--image` accepts text pixels in either `0..255` or already-normalized `0..1` format.
+
+### Interactive TUI
+
+```bash
+./build/tui
+```
+
+Menu options:
+- Train/Evaluate model
+- Predict from image
+- Show Fashion-MNIST class labels
 
 ### Image Preprocessing
 
@@ -134,7 +157,7 @@ Accuracy: 94.6%
 
 Sample Predictions:
 ----------------------------------------
-Image 0 | True: 7 | Predicted: 7 [OK]
+Image 0 | True: 7 (Sneaker) | Predicted: 7 (Sneaker) [OK]
 ............................
 ..............@@@#..........
 .............@@@@@..........
@@ -148,12 +171,13 @@ Image 0 | True: 7 | Predicted: 7 [OK]
 - Input: 784 neurons (28x28 pixels)
 - Hidden: 128 neurons (ReLU)
 - Output: 10 neurons (Softmax)
-- Optimizer: Adagrad
-- Loss: MSE
+- Optimizer: Mini-batch SGD with learning-rate decay
+- Loss: Cross-entropy
+- Regularization: L2 weight decay
 
 ### KNN
 - Distance: Euclidean
-- Voting: Majority
+- Voting: Distance-weighted by default (or uniform with `--uniform-knn`)
 - Parallelized with OpenMP
 
 ## License
@@ -162,5 +186,4 @@ MIT License - see [LICENSE](LICENSE)
 
 ## References
 
-- [MNIST Database](http://yann.lecun.com/exdb/mnist/)
-- [Tiny-dnn](https://github.com/tiny-dnn/tiny-dnn)
+- [Fashion-MNIST Database](https://github.com/zalandoresearch/fashion-mnist)

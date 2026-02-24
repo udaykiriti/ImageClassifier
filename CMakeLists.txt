@@ -8,7 +8,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 find_package(OpenMP)
 
 include_directories(include)
-include_directories(tiny-dnn)
 
 set(CORE_SRC
     src/core/classifier.cpp
@@ -32,9 +31,16 @@ add_executable(predict
     src/classifiers/neural_net.cpp
 )
 
+add_executable(tui
+    src/apps/tui.cpp
+    ${CORE_SRC}
+    ${CLASSIFIERS_SRC}
+)
+
 if(OpenMP_CXX_FOUND)
     target_link_libraries(train OpenMP::OpenMP_CXX)
     target_link_libraries(predict OpenMP::OpenMP_CXX)
+    target_link_libraries(tui OpenMP::OpenMP_CXX)
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra")

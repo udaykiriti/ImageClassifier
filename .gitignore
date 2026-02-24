@@ -6,7 +6,7 @@ CMakeFiles/
 cmake_install.cmake
 
 # Models (optional - uncomment to track models)
-# models/*.model
+models/*.model
 
 # Compiled
 *.o
@@ -30,3 +30,6 @@ Thumbs.db
 # Data (large files)
 *.weights
 *.bin
+data/*-images-idx3-ubyte
+data/*-labels-idx1-ubyte
+data/*.gz

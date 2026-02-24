@@ -18,7 +18,7 @@ private:
     int rows_ = 0;
     int cols_ = 0;
 
-    static uint32_t readBigEndian(std::ifstream& file);
+    static bool readBigEndian(std::ifstream& file, uint32_t& value);
 
 public:
     explicit Dataset(const std::string& path = "./data");

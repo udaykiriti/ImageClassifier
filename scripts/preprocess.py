@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Convert an image file to a text file of pixel values for digit prediction.
+Convert an image file to a text file of pixel values for Fashion-MNIST prediction.
 Usage: python scripts/preprocess.py [input_image] [output_file]
 """
 
